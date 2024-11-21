@@ -54,7 +54,6 @@ $users = $conn->query("SELECT * FROM users")->fetchAll();
     <div class="container py-4" style="margin-left: 70px;">
         <h1 class="mb-4">Panel de Administración</h1>
         <p>Bienvenido, <strong><?= $_SESSION['username']; ?></strong>!</p>
-        <a href="logout.php" class="btn btn-secondary mb-4">Cerrar Sesión</a>
 
         <div class="card mb-4">
             <div class="card-header">Añadir Usuario</div>
