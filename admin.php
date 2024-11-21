@@ -49,45 +49,47 @@ $users = $conn->query("SELECT * FROM users")->fetchAll();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-    <div class="container py-4">
-        <h1 class="mb-4">Admin Panel</h1>
-        <p>Welcome, <strong><?= $_SESSION['username']; ?></strong>!</p>
-        <a href="logout.php" class="btn btn-secondary mb-4">Logout</a>
+    <?php include 'sidebar.php'; ?>
+
+    <div class="container py-4" style="margin-left: 70px;">
+        <h1 class="mb-4">Panel de Administración</h1>
+        <p>Bienvenido, <strong><?= $_SESSION['username']; ?></strong>!</p>
+        <a href="logout.php" class="btn btn-secondary mb-4">Cerrar Sesión</a>
 
         <div class="card mb-4">
-            <div class="card-header">Add User</div>
+            <div class="card-header">Añadir Usuario</div>
             <div class="card-body">
                 <form method="POST">
                     <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
+                        <label for="username" class="form-label">Usuario</label>
                         <input type="text" class="form-control" id="username" name="username" required>
                     </div>
                     <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
+                        <label for="password" class="form-label">Contraseña</label>
                         <input type="password" class="form-control" id="password" name="password" required>
                     </div>
                     <div class="mb-3">
-                        <label for="role" class="form-label">Role</label>
+                        <label for="role" class="form-label">Rol</label>
                         <select class="form-select" id="role" name="role">
-                            <option value="user">User</option>
+                            <option value="user">Usuario</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>
-                    <button type="submit" name="add_user" class="btn btn-primary">Add User</button>
+                    <button type="submit" name="add_user" class="btn btn-primary">Añadir Usuario</button>
                 </form>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header">Manage Users</div>
+            <div class="card-header">Datos Usuarios</div>
             <div class="card-body">
                 <table class="table table-striped">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Username</th>
-                            <th>Role</th>
-                            <th>Action</th>
+                            <th>Usuario</th>
+                            <th>Rol</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -103,7 +105,7 @@ $users = $conn->query("SELECT * FROM users")->fetchAll();
                                             <option value="user" <?= $user['role'] === 'user' ? 'selected' : ''; ?>>User</option>
                                             <option value="admin" <?= $user['role'] === 'admin' ? 'selected' : ''; ?>>Admin</option>
                                         </select>
-                                        <button type="submit" name="update_role" class="btn btn-sm btn-primary">Update</button>
+                                        <button type="submit" name="update_role" class="btn btn-sm btn-primary">Actualizar</button>
                                     </form>
                                 </td>
                             </tr>
