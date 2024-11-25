@@ -1,13 +1,14 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 4.9.0.1
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 17-11-2024 a las 22:27:55
--- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.2.12
+-- Tiempo de generación: 25-11-2024 a las 13:45:34
+-- Versión del servidor: 10.4.6-MariaDB
+-- Versión de PHP: 7.2.22
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -24,6 +25,97 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `categorias`
+--
+
+CREATE TABLE `categorias` (
+  `ID_categoria` int(11) NOT NULL,
+  `nombre` varchar(50) NOT NULL,
+  `icono` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Volcado de datos para la tabla `categorias`
+--
+
+INSERT INTO `categorias` (`ID_categoria`, `nombre`, `icono`) VALUES
+(1, 'Estación de Policía', 'iconos/policia.png'),
+(2, 'Punto de Control', 'iconos/control.png'),
+(3, 'Zona de Patrullaje', 'iconos/patrullaje.png'),
+(4, 'Zona de Riesgo', 'iconos/riesgo.png'),
+(5, 'Estación de Bomberos', 'iconos/bomberos.png'),
+(6, 'Zona Urbana de Tarija', 'iconos/urbana.png');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `horarios_patrullaje`
+--
+
+CREATE TABLE `horarios_patrullaje` (
+  `ID_horario` int(11) NOT NULL,
+  `ID_punto` int(11) DEFAULT NULL,
+  `horario_patullaje` varchar(50) DEFAULT NULL,
+  `contacto_emergencia` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Volcado de datos para la tabla `horarios_patrullaje`
+--
+
+INSERT INTO `horarios_patrullaje` (`ID_horario`, `ID_punto`, `horario_patullaje`, `contacto_emergencia`) VALUES
+(1, 1, '08:00 - 18:00', '123-456-7890'),
+(2, 2, '24 horas', '987-654-3210');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `puntos`
+--
+
+CREATE TABLE `puntos` (
+  `ID_punto` int(11) NOT NULL,
+  `nombre` varchar(100) NOT NULL,
+  `tipo_punto` varchar(50) NOT NULL,
+  `latitud` decimal(10,8) NOT NULL,
+  `longitud` decimal(11,8) NOT NULL,
+  `descripcion` text DEFAULT NULL,
+  `ID_categoria` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Volcado de datos para la tabla `puntos`
+--
+
+INSERT INTO `puntos` (`ID_punto`, `nombre`, `tipo_punto`, `latitud`, `longitud`, `descripcion`, `ID_categoria`) VALUES
+(1, 'Estación Central de Policía', 'Estación de Policía', '-21.53500000', '-64.73300000', 'Estación principal de la policía en el centro de la ciudad.', 1),
+(2, 'Punto de Control Norte', 'Punto de Control', '-21.53100000', '-64.72700000', 'Punto de control de seguridad en el norte de la ciudad.', 2);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `recursos_riesgo`
+--
+
+CREATE TABLE `recursos_riesgo` (
+  `ID_recurso` int(11) NOT NULL,
+  `ID_punto` int(11) DEFAULT NULL,
+  `descripcion_recursos` text DEFAULT NULL,
+  `zona_riesgo` text DEFAULT NULL,
+  `frecuencia_incidentes` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Volcado de datos para la tabla `recursos_riesgo`
+--
+
+INSERT INTO `recursos_riesgo` (`ID_recurso`, `ID_punto`, `descripcion_recursos`, `zona_riesgo`, `frecuencia_incidentes`) VALUES
+(1, 1, '10 vehículos, 50 oficiales', NULL, NULL),
+(2, 2, '5 vehículos, 20 oficiales', 'Zona con riesgo moderado de incidentes', 15);
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `users`
 --
 
@@ -32,20 +124,50 @@ CREATE TABLE `users` (
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
   `role` enum('admin','user') NOT NULL DEFAULT 'user'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Volcado de datos para la tabla `users`
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `role`) VALUES
-(1, 'admin', '0192023a7bbd73250516f069df18b500', 'admin'),
-(2, 'san', 'e03e9d09785663f5dfca5413be728faa', 'user'),
-(3, 'Ari', 'd8c89a8795b1b862b8f0ae04630d38e2', 'admin');
+(5, 'admin', '$2y$10$kPhR6nAQ/4HsUlvsUPwD1uhvPmhzPfyHmrMGeN8UnfH1t/xp4Dqru', 'admin'),
+(6, 'user', '$2y$10$RH9qPZ0CX9gzVPT.Lg06tuH6bzAweYio6Y0ZnpN8g7tdewy/Tmn6W', 'user'),
+(7, 'admin1', 'admin123', 'admin'),
+(8, 'user1ó', 'user123', 'user'),
+(9, 'marcelo', '81dc9bdb52d04dc20036dbd8313ed055', 'user'),
+(10, 'fernando', '81dc9bdb52d04dc20036dbd8313ed055', 'admin');
 
 --
 -- Índices para tablas volcadas
 --
+
+--
+-- Indices de la tabla `categorias`
+--
+ALTER TABLE `categorias`
+  ADD PRIMARY KEY (`ID_categoria`);
+
+--
+-- Indices de la tabla `horarios_patrullaje`
+--
+ALTER TABLE `horarios_patrullaje`
+  ADD PRIMARY KEY (`ID_horario`),
+  ADD KEY `ID_punto` (`ID_punto`);
+
+--
+-- Indices de la tabla `puntos`
+--
+ALTER TABLE `puntos`
+  ADD PRIMARY KEY (`ID_punto`),
+  ADD KEY `ID_categoria` (`ID_categoria`);
+
+--
+-- Indices de la tabla `recursos_riesgo`
+--
+ALTER TABLE `recursos_riesgo`
+  ADD PRIMARY KEY (`ID_recurso`),
+  ADD KEY `ID_punto` (`ID_punto`);
 
 --
 -- Indices de la tabla `users`
@@ -59,10 +181,56 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT de la tabla `categorias`
+--
+ALTER TABLE `categorias`
+  MODIFY `ID_categoria` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT de la tabla `horarios_patrullaje`
+--
+ALTER TABLE `horarios_patrullaje`
+  MODIFY `ID_horario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT de la tabla `puntos`
+--
+ALTER TABLE `puntos`
+  MODIFY `ID_punto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT de la tabla `recursos_riesgo`
+--
+ALTER TABLE `recursos_riesgo`
+  MODIFY `ID_recurso` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- Restricciones para tablas volcadas
+--
+
+--
+-- Filtros para la tabla `horarios_patrullaje`
+--
+ALTER TABLE `horarios_patrullaje`
+  ADD CONSTRAINT `horarios_patrullaje_ibfk_1` FOREIGN KEY (`ID_punto`) REFERENCES `puntos` (`ID_punto`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `puntos`
+--
+ALTER TABLE `puntos`
+  ADD CONSTRAINT `puntos_ibfk_1` FOREIGN KEY (`ID_categoria`) REFERENCES `categorias` (`ID_categoria`) ON DELETE SET NULL;
+
+--
+-- Filtros para la tabla `recursos_riesgo`
+--
+ALTER TABLE `recursos_riesgo`
+  ADD CONSTRAINT `recursos_riesgo_ibfk_1` FOREIGN KEY (`ID_punto`) REFERENCES `puntos` (`ID_punto`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
