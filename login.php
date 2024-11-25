@@ -32,11 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         exit();
     } else {
-        $error = "Invalid credentials!";
+        $error = "Credenciales inválidas.";
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-image: url('https://i.imgflip.com/4v7a3a.png?a480792'); /* Cambia esta URL */
+            background-image: url('https://i.imgflip.com/4v7a3a.png?a480792');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
