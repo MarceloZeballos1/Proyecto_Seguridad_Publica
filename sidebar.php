@@ -1,5 +1,6 @@
 <?php
 $isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+$isUser = isset($_SESSION['role']) && $_SESSION['role'] === 'user';
 ?>
 
 <div id="sidebar" class="sidebar">
@@ -8,11 +9,35 @@ $isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
             <span class="icon">📊</span>
             <span class="text">Dashboard</span>
         </a>
+        <?php if ($isUser): ?>
+        <a href="user.php" class="sidebar-item">
+            <span class="icon">🗺</span>
+            <span class="text">Mapa</span>
+        </a>
+        <?php endif; ?>
+        <?php if ($isAdmin): ?>
+        <a href="index.php" class="sidebar-item">
+            <span class="icon">🗺</span>
+            <span class="text">Mapa</span>
+        </a>
+        <?php endif; ?>
         <?php if ($isAdmin): ?>
             <a href="admin.php" class="sidebar-item">
                 <span class="icon">👥</span>
                 <span class="text">Gestión de Usuarios</span>
             </a>
+        <?php endif; ?>
+        <?php if ($isAdmin): ?>
+            <a href="admin_puntos.php" class="sidebar-item">
+                <span class="icon">📍</span>
+                <span class="text">Puntos</span>
+            </a>
+        <?php endif; ?>
+        <?php if ($isAdmin): ?>
+        <a href="admin_categorias.php" class="sidebar-item">
+            <span class="icon">🗃</span>
+            <span class="text">Categorías</span>
+        </a>
         <?php endif; ?>
         <a href="logout.php" class="sidebar-item">
             <span class="icon">🔓</span>

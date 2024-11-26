@@ -1,40 +1,55 @@
-<?php
-require 'session_check.php';
-require 'db.php';
+<?php 
+require 'session_check.php'; 
+require 'db.php'; 
+require 'Category.php'; 
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
-}
+try { 
+    $categoryModel = new Category($conn); 
+    $categorias = $categoryModel->getAllCategories(); 
+} catch (Exception $e) { 
+    echo $e->getMessage(); 
+    exit(); 
+} 
 
-// Evita que el navegador almacene la página en caché
-header("Expires: Tue, 01 Jan 2000 00:00:00 GMT");
-header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Cache-Control: post-check=0, pre-check=0", false);
-header("Pragma: no-cache");
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'savePoint') { 
+    $lat = $_POST['lat']; 
+    $lng = $_POST['lng']; 
+    $name = $_POST['name']; 
+    $description = $_POST['description']; 
+    $category_id = $_POST['category_id']; 
+    try { 
+        $stmt = $conn->prepare("INSERT INTO puntos (latitud, longitud, nombre, descripcion, ID_categoria) VALUES (?, ?, ?, ?, ?)"); 
+        $stmt->execute([$lat, $lng, $name, $description, $category_id]);  
+        echo json_encode(['success' => true]); 
+    } catch (Exception $e) { 
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]); 
+    } 
+    exit(); 
+} 
 
-
-// Verificar rol de usuario
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'user') {
-    header("Location: login.php");
-    exit();
-}
-
-$users = $conn->query("SELECT * FROM users")->fetchAll();
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'filterPoints') { 
+    $categoryId = $_POST['category_id']; 
+    try { 
+        $stmt = $conn->prepare("SELECT * FROM puntos WHERE ID_categoria = ?"); 
+        $stmt->execute([$categoryId]); 
+        $points = $stmt->fetchAll(PDO::FETCH_ASSOC); 
+        echo json_encode($points);  
+    } catch (Exception $e) { 
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]); 
+    } 
+    exit(); 
+} 
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <SCRIPT LANGUAGE="JavaScript">
-    history.forward()
-    </SCRIPT>
-    <meta http-equiv=”Content-Type” content=”text/html; charset=UTF-8″ />
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Usuario</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Mapa Tarijita Filtros y Puntos</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA3rSjXWyW5t2AP70wNn5KsTsR925e5GGk&callback=initMap" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <style>
         body {
             display: flex;
@@ -42,90 +57,36 @@ $users = $conn->query("SELECT * FROM users")->fetchAll();
             margin: 0;
         }
 
-        /* Ajuste para el sidebar */
-        #sidebar {
-            width: 60px;
-            background-color: #343a40;
-            color: #fff;
-            padding-top: 20px;
-            position: fixed;
-            height: 100%;
-            transition: width 0.3s ease;
-            z-index: 1000;
+        #map {
+            height: calc(100vh - 60px);
+            width: 100%;
         }
 
-        /* Expande el sidebar cuando se hace hover */
-        #sidebar:hover {
-            width: 250px;
-        }
-
-        /* Estilo del contenido principal */
         .content-wrapper {
             margin-left: 60px;
-            width: calc(100% - 60px);
-            padding: 20px;
+            flex: 1;
+            padding: 10px;
         }
 
-        /* Mapa con altura correcta */
-        #map {
-            height: 80vh;
-            width: 100%;
-        }
-
-        /* Estilos de los íconos y textos */
-        .sidebar-content {
-            display: flex;
-            flex-direction: column;
-            align-items: start;
-            padding: 10px 0;
-            overflow-y: auto;
-        }
-
-        /* Estilo de los elementos del sidebar */
-        .sidebar-item {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            color: #fff;
-            padding: 10px 20px;
-            width: 100%;
-            white-space: nowrap;
-            transition: background-color 0.3s ease;
-        }
-
-        .sidebar-item:hover {
-            background-color: #495057;
-        }
-
-        .icon {
-            margin-right: 10px;
-            font-size: 20px;
-        }
-
-        .text {
-            display: none;
-        }
-
-        /* Mostrar texto cuando el sidebar está expandido */
-        #sidebar:hover .text {
-            display: inline-block;
-        }
-
-        header {
-            margin-bottom: 20px;
-        }
-
-        main {
-            height: 80vh;
+        #sidebar:hover + .content-wrapper {
+            margin-left: 250px;
         }
     </style>
 </head>
-<body class="bg-light">
+<body>
+    <!-- Sidebar -->
     <?php include 'sidebar.php'; ?>
 
+    <!-- Contenido principal -->
     <div class="content-wrapper">
         <header class="p-3 bg-light border-bottom">
-            <h3>Bienvenido al Sistema de Seguridad Pública, <strong><?= $_SESSION['username']; ?></strong>!</h3>
+            <h3>Mapa de Seguridad Pública Boliviana</h3>
+            <select id="categoryFilter" class="form-select w-auto" onchange="filterPointsByCategory(this.value)">
+                <option value="">Selecciona una categoría 🧭</option>
+                <?php foreach ($categorias as $categoria): ?>
+                    <option value="<?= htmlspecialchars($categoria['id']); ?>"><?= htmlspecialchars($categoria['name']); ?></option>
+                <?php endforeach; ?>
+            </select>
         </header>
 
         <main class="p-4">
@@ -134,12 +95,73 @@ $users = $conn->query("SELECT * FROM users")->fetchAll();
     </div>
 
     <script>
+        var map, markers = [];
+
         function initMap() {
-            const map = new google.maps.Map(document.getElementById("map"), {
-                center: { lat: -21.5311, lng: -64.7249 }, // Coordenadas de Tarija
-                zoom: 14,
+            const tarija = { lat: -21.5355, lng: -64.7296 };
+            map = new google.maps.Map(document.getElementById('map'), { center: tarija, zoom: 13 });
+
+            google.maps.event.addListener(map, 'click', function(event) {
+                const lat = event.latLng.lat();
+                const lng = event.latLng.lng();
+                openAddPointModal(lat, lng);
             });
         }
+
+        function openAddPointModal(lat, lng) {
+            $('#pointLat').val(lat);
+            $('#pointLng').val(lng);
+            $('#addPointModal').modal('show');
+        }
+
+        $('#addPointForm').on('submit', function(e) {
+            e.preventDefault();
+
+            const name = $('#pointName').val();
+            const description = $('#pointDescription').val();
+            const categoryId = $('#pointCategory').val();
+            const lat = $('#pointLat').val();
+            const lng = $('#pointLng').val();
+
+            if (name && description && categoryId) {
+                $.post('index.php?action=savePoint', {
+                    lat: lat,
+                    lng: lng,
+                    name: name,
+                    description: description,
+                    category_id: categoryId
+                }, function(response) {
+                    const res = JSON.parse(response);
+                    alert(res.success ? 'Punto guardado exitosamente.' : `Error: ${res.error}`);
+                    $('#addPointModal').modal('hide');
+                });
+            }
+        });
+
+        function filterPointsByCategory(categoryId) {
+            $.post('index.php?action=filterPoints', { category_id: categoryId }, function(data) {
+                const points = JSON.parse(data);
+                clearMarkers();
+                if (points.length > 0) {
+                    points.forEach(function(point) {
+                        const marker = new google.maps.Marker({
+                            position: { lat: parseFloat(point.latitud), lng: parseFloat(point.longitud) },
+                            map: map,
+                            title: point.nombre || point.descripcion
+                        });
+                        markers.push(marker);
+                    });
+                } else {
+                    alert("No se encontraron puntos para esta categoría.");
+                }
+            });
+        }
+
+        function clearMarkers() {
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+        }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
