@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
         <header class="p-3 bg-light border-bottom">
             <h3>Mapa de Seguridad Pública Boliviana</h3>
             <select id="categoryFilter" class="form-select w-auto" onchange="filterPointsByCategory(this.value)">
-                <option value="">Selecciona una categoría</option>
+                <option value="">Selecciona una categoría 🧭</option>
                 <?php foreach ($categorias as $categoria): ?>
                     <option value="<?= htmlspecialchars($categoria['id']); ?>"><?= htmlspecialchars($categoria['name']); ?></option>
                 <?php endforeach; ?>

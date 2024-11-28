@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 26-11-2024 a las 21:18:05
+-- Tiempo de generación: 28-11-2024 a las 21:59:23
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -30,20 +30,24 @@ SET time_zone = "+00:00";
 CREATE TABLE `categorias` (
   `ID_categoria` int(11) NOT NULL,
   `nombre` varchar(50) NOT NULL,
-  `icono` varchar(255) DEFAULT NULL
+  `icono` varchar(255) DEFAULT NULL,
+  `geojson_path` varchar(255) DEFAULT NULL,
+  `qmd_path` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 --
 -- Volcado de datos para la tabla `categorias`
 --
 
-INSERT INTO `categorias` (`ID_categoria`, `nombre`, `icono`) VALUES
-(1, 'Estación de Policía', 'iconos/policia.png'),
-(2, 'Punto de Control', 'iconos/control.png'),
-(3, 'Zona de Patrullaje', 'iconos/patrullaje.png'),
-(4, 'Zona de Riesgo', 'iconos/riesgo.png'),
-(5, 'Estación de Bomberos', 'iconos/bomberos.png'),
-(6, 'Zona Urbana de Tarija', 'iconos/urbana.png');
+INSERT INTO `categorias` (`ID_categoria`, `nombre`, `icono`, `geojson_path`, `qmd_path`) VALUES
+(1, 'Estación de Policía', 'uploads/iconos/policia.png', NULL, NULL),
+(2, 'Punto de Control', 'uploads/iconos/control.png', NULL, NULL),
+(3, 'Zona de Patrullaje', 'uploads/iconos/patrullaje.png', NULL, NULL),
+(4, 'Zona de Riesgo', 'uploads/iconos/riesgo.png', NULL, NULL),
+(5, 'Estación de Bomberos', 'uploads/iconos/bomberos.png', NULL, NULL),
+(6, 'Zona Urbana de Tarija', 'uploads/iconos/urbana.png', NULL, NULL),
+(12, 'Bomberos prueba', 'uploads/iconos/bombero.png', 'uploads/layers/estacion_bombero.geojson', 'uploads/layers/estacion_bombero.qmd'),
+(13, 'Polis Prueba', 'uploads/iconos/policia.png', 'uploads/layers/estacion_policia.geojson', 'uploads/layers/estacion_policia.qmd');
 
 -- --------------------------------------------------------
 
@@ -168,7 +172,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT de la tabla `categorias`
 --
 ALTER TABLE `categorias`
-  MODIFY `ID_categoria` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `ID_categoria` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `puntos`

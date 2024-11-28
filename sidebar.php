@@ -39,6 +39,12 @@ $isUser = isset($_SESSION['role']) && $_SESSION['role'] === 'user';
             <span class="text">Categorías</span>
         </a>
         <?php endif; ?>
+        <?php if ($isAdmin): ?>
+        <a href="cargar.php" class="sidebar-item">
+            <span class="icon">💾</span>
+            <span class="text">Cargar Puntos</span>
+        </a>
+        <?php endif; ?>
         <a href="logout.php" class="sidebar-item">
             <span class="icon">🔓</span>
             <span class="text">Cerrar Sesión</span>

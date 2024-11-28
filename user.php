@@ -11,34 +11,44 @@ try {
     exit(); 
 } 
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'savePoint') { 
-    $lat = $_POST['lat']; 
-    $lng = $_POST['lng']; 
-    $name = $_POST['name']; 
-    $description = $_POST['description']; 
-    $category_id = $_POST['category_id']; 
-    try { 
-        $stmt = $conn->prepare("INSERT INTO puntos (latitud, longitud, nombre, descripcion, ID_categoria) VALUES (?, ?, ?, ?, ?)"); 
-        $stmt->execute([$lat, $lng, $name, $description, $category_id]);  
-        echo json_encode(['success' => true]); 
-    } catch (Exception $e) { 
-        echo json_encode(['success' => false, 'error' => $e->getMessage()]); 
-    } 
-    exit(); 
-} 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
+    switch ($_GET['action']) {
+        case 'savePoint':
+            $lat = $_POST['lat']; 
+            $lng = $_POST['lng']; 
+            $name = $_POST['name']; 
+            $description = $_POST['description']; 
+            $category_id = $_POST['category_id']; 
+            try { 
+                $stmt = $conn->prepare("INSERT INTO puntos (latitud, longitud, nombre, descripcion, ID_categoria) VALUES (?, ?, ?, ?, ?)"); 
+                $stmt->execute([$lat, $lng, $name, $description, $category_id]);  
+                echo json_encode(['success' => true]); 
+            } catch (Exception $e) { 
+                echo json_encode(['success' => false, 'error' => $e->getMessage()]); 
+            } 
+            break;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'filterPoints') { 
-    $categoryId = $_POST['category_id']; 
-    try { 
-        $stmt = $conn->prepare("SELECT * FROM puntos WHERE ID_categoria = ?"); 
-        $stmt->execute([$categoryId]); 
-        $points = $stmt->fetchAll(PDO::FETCH_ASSOC); 
-        echo json_encode($points);  
-    } catch (Exception $e) { 
-        echo json_encode(['success' => false, 'error' => $e->getMessage()]); 
-    } 
-    exit(); 
-} 
+        case 'filterPoints':
+            $categoryId = $_POST['category_id']; 
+            try { 
+                $stmt = $conn->prepare("SELECT p.*, c.geojson_path, c.icono 
+                        FROM puntos p 
+                        JOIN categorias c ON p.ID_categoria = c.id 
+                        WHERE p.ID_categoria = ?");
+                $stmt->execute([$categoryId]); 
+                $points = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                echo json_encode([
+                    'points' => $points,
+                    'geojson_path' => $points[0]['geojson_path'] ?? null
+                ]);
+            } catch (Exception $e) { 
+                echo json_encode(['success' => false, 'error' => $e->getMessage()]); 
+            } 
+            break;
+    }
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -81,12 +91,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
     <div class="content-wrapper">
         <header class="p-3 bg-light border-bottom">
             <h3>Mapa de Seguridad Pública Boliviana</h3>
-            <select id="categoryFilter" class="form-select w-auto" onchange="filterPointsByCategory(this.value)">
-                <option value="">Selecciona una categoría 🧭</option>
-                <?php foreach ($categorias as $categoria): ?>
-                    <option value="<?= htmlspecialchars($categoria['id']); ?>"><?= htmlspecialchars($categoria['name']); ?></option>
-                <?php endforeach; ?>
-            </select>
+            <div class="d-flex align-items-center">
+                <!-- Dropdown para categorías -->
+                <select id="categoryFilter" class="form-select w-auto me-3" onchange="filterPointsByCategory(this.value)">
+                    <option value="">Selecciona una categoría 🧭</option>
+                    <?php foreach ($categorias as $categoria): ?>
+                        <option value="<?= htmlspecialchars($categoria['id']); ?>"><?= htmlspecialchars($categoria['name']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+
+                <!-- Dropdown para cargar GeoJSON -->
+                <select id="geojsonFilter" class="form-select w-auto" onchange="loadSelectedGeoJSON(this.value)">
+                    <option value="">Selecciona un archivo GeoJSON 🗂️</option>
+                    <?php
+                    // Listar archivos GeoJSON desde la carpeta especificada
+                    $geojsonPath = 'uploads/layers/';
+                    $files = array_filter(scandir($geojsonPath), fn($file) => pathinfo($file, PATHINFO_EXTENSION) === 'geojson');
+                    foreach ($files as $file): ?>
+                        <option value="<?= htmlspecialchars($geojsonPath . $file); ?>"><?= htmlspecialchars($file); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
         </header>
 
         <main class="p-4">
@@ -108,52 +133,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
             });
         }
 
-        function openAddPointModal(lat, lng) {
-            $('#pointLat').val(lat);
-            $('#pointLng').val(lng);
-            $('#addPointModal').modal('show');
-        }
+        function filterPointsByCategory(categoryId) {
+    clearMarkers();
+    $.post('user.php?action=filterPoints', { category_id: categoryId }, function(response) {
+        const data = JSON.parse(response);
+        const points = data.points;
 
-        $('#addPointForm').on('submit', function(e) {
-            e.preventDefault();
+        points.forEach(function(point) {
+            const iconPath = point.icono; // Obtén el ícono de la base de datos
 
-            const name = $('#pointName').val();
-            const description = $('#pointDescription').val();
-            const categoryId = $('#pointCategory').val();
-            const lat = $('#pointLat').val();
-            const lng = $('#pointLng').val();
-
-            if (name && description && categoryId) {
-                $.post('index.php?action=savePoint', {
-                    lat: lat,
-                    lng: lng,
-                    name: name,
-                    description: description,
-                    category_id: categoryId
-                }, function(response) {
-                    const res = JSON.parse(response);
-                    alert(res.success ? 'Punto guardado exitosamente.' : `Error: ${res.error}`);
-                    $('#addPointModal').modal('hide');
-                });
-            }
+            const marker = new google.maps.Marker({
+                position: { lat: parseFloat(point.latitud), lng: parseFloat(point.longitud) },
+                map: map,
+                title: point.nombre || point.descripcion,
+                icon: {
+                    url: iconPath, // Asigna el path del ícono desde la base de datos
+                    scaledSize: new google.maps.Size(32, 32) // Ajusta el tamaño del ícono si es necesario
+                }
+            });
+            markers.push(marker);
         });
 
-        function filterPointsByCategory(categoryId) {
-            $.post('index.php?action=filterPoints', { category_id: categoryId }, function(data) {
-                const points = JSON.parse(data);
-                clearMarkers();
-                if (points.length > 0) {
-                    points.forEach(function(point) {
-                        const marker = new google.maps.Marker({
-                            position: { lat: parseFloat(point.latitud), lng: parseFloat(point.longitud) },
-                            map: map,
-                            title: point.nombre || point.descripcion
-                        });
-                        markers.push(marker);
+        if (data.geojson_path) {
+            loadSelectedGeoJSON(data.geojson_path);
+        }
+    });
+}
+
+        function loadSelectedGeoJSON(filePath) {
+            clearMarkers();
+
+            if (!filePath) {
+                alert('Por favor, selecciona un archivo GeoJSON.');
+                return;
+            }
+
+            $.getJSON(filePath, function(data) {
+                data.features.forEach(function(feature) {
+                    const coords = feature.geometry.coordinates;
+                    const latLng = { lat: coords[1], lng: coords[0] };
+                    const marker = new google.maps.Marker({
+                        position: latLng,
+                        map: map,
+                        title: feature.properties.descrip || 'Sin descripción',
+                        icon: {
+                            url: "uploads/iconos/bombero.png",
+                            scaledSize: new google.maps.Size(32, 32)
+                        }
                     });
-                } else {
-                    alert("No se encontraron puntos para esta categoría.");
-                }
+                    markers.push(marker);
+                });
+            }).fail(function() {
+                alert('No se pudo cargar el archivo GeoJSON.');
             });
         }
 
