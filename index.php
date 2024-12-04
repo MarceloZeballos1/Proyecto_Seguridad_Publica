@@ -30,7 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'filterPoints') { 
     $categoryId = $_POST['category_id']; 
     try { 
-        $stmt = $conn->prepare("SELECT * FROM puntos WHERE ID_categoria = ?"); 
+        $stmt = $conn->prepare("SELECT puntos.*, categorias.icono FROM puntos 
+                                INNER JOIN categorias ON puntos.ID_categoria = categorias.ID_categoria 
+                                WHERE puntos.ID_categoria = ?");
         $stmt->execute([$categoryId]); 
         $points = $stmt->fetchAll(PDO::FETCH_ASSOC); 
         echo json_encode($points);  
@@ -175,23 +177,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
         });
 
         function filterPointsByCategory(categoryId) {
-            $.post('index.php?action=filterPoints', { category_id: categoryId }, function(data) {
-                const points = JSON.parse(data);
-                clearMarkers();
-                if (points.length > 0) {
-                    points.forEach(function(point) {
-                        const marker = new google.maps.Marker({
-                            position: { lat: parseFloat(point.latitud), lng: parseFloat(point.longitud) },
-                            map: map,
-                            title: point.nombre || point.descripcion
-                        });
-                        markers.push(marker);
-                    });
-                } else {
-                    alert("No se encontraron puntos para esta categoría.");
-                }
+    $.post('index.php?action=filterPoints', { category_id: categoryId }, function(data) {
+        const points = JSON.parse(data);
+        clearMarkers();
+        if (points.length > 0) {
+            points.forEach(function(point) {
+                const marker = new google.maps.Marker({
+                    position: { lat: parseFloat(point.latitud), lng: parseFloat(point.longitud) },
+                    map: map,
+                    title: point.nombre || point.descripcion,
+                    icon: {
+                        url: point.icono || null, // Usa la ruta completa desde la base de datos
+                        scaledSize: new google.maps.Size(32, 32) // Ajusta el tamaño del ícono
+                    }
+                });
+                markers.push(marker);
             });
+        } else {
+            alert("No se encontraron puntos para esta categoría.");
         }
+    });
+}
 
         function clearMarkers() {
             markers.forEach(marker => marker.setMap(null));

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 28-11-2024 a las 21:59:23
+-- Tiempo de generación: 04-12-2024 a las 04:51:33
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -46,8 +46,8 @@ INSERT INTO `categorias` (`ID_categoria`, `nombre`, `icono`, `geojson_path`, `qm
 (4, 'Zona de Riesgo', 'uploads/iconos/riesgo.png', NULL, NULL),
 (5, 'Estación de Bomberos', 'uploads/iconos/bomberos.png', NULL, NULL),
 (6, 'Zona Urbana de Tarija', 'uploads/iconos/urbana.png', NULL, NULL),
-(12, 'Bomberos prueba', 'uploads/iconos/bombero.png', 'uploads/layers/estacion_bombero.geojson', 'uploads/layers/estacion_bombero.qmd'),
-(13, 'Polis Prueba', 'uploads/iconos/policia.png', 'uploads/layers/estacion_policia.geojson', 'uploads/layers/estacion_policia.qmd');
+(14, 'Puentecitos', 'uploads/iconos/puente.png', NULL, NULL),
+(15, 'Control', 'uploads/iconos/persona.png', 'uploads/layers/punto_control.geojson', 'uploads/layers/punto_control.qmd');
 
 -- --------------------------------------------------------
 
@@ -94,7 +94,9 @@ INSERT INTO `puntos` (`ID_punto`, `nombre`, `tipo_punto`, `latitud`, `longitud`,
 (1, 'Estación Central de Policía', 'Estación de Policía', -21.53500000, -64.73300000, 'Estación principal de la policía en el centro de la ciudad', 1),
 (2, 'Punto de Control Norte', 'Punto de Control', -21.53100000, -64.72700000, 'Punto de control de seguridad en el norte de la ciudad.', 2),
 (3, 'Estación de Bomberos Senac', '', -21.54011630, -64.75032806, 'Barrio Senac', 5),
-(5, 'Zona de patrullaje Aeropuerto', '', -21.54746105, -64.70861435, 'Oriel Lea Plaza', 3);
+(5, 'Zona de patrullaje Aeropuerto', '', -21.54746105, -64.70861435, 'Oriel Lea Plaza', 3),
+(6, 'Puente 1', '', -21.54378804, -64.72934251, 'Temático', 14),
+(7, 'Control de Aeropuerto', '', -21.54746105, -64.70861435, 'Aeropuerto Internacional Oriel Lea Plaza', 15);
 
 -- --------------------------------------------------------
 
@@ -139,7 +141,8 @@ INSERT INTO `users` (`id`, `username`, `password`, `role`) VALUES
 (1, 'admin', '0192023a7bbd73250516f069df18b500', 'admin'),
 (2, 'san', 'e03e9d09785663f5dfca5413be728faa', 'user'),
 (4, 'marcelo', '81dc9bdb52d04dc20036dbd8313ed055', 'user'),
-(5, 'fernando', '81dc9bdb52d04dc20036dbd8313ed055', 'admin');
+(5, 'fernando', '81dc9bdb52d04dc20036dbd8313ed055', 'admin'),
+(6, 'Diego', '81dc9bdb52d04dc20036dbd8313ed055', 'user');
 
 --
 -- Índices para tablas volcadas
@@ -172,19 +175,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT de la tabla `categorias`
 --
 ALTER TABLE `categorias`
-  MODIFY `ID_categoria` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `ID_categoria` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT de la tabla `puntos`
 --
 ALTER TABLE `puntos`
-  MODIFY `ID_punto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `ID_punto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

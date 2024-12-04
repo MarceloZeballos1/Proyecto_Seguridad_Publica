@@ -92,19 +92,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         <header class="p-3 bg-light border-bottom">
             <h3>Mapa de Seguridad Pública Boliviana</h3>
             <div class="d-flex align-items-center">
-                <!-- Dropdown para categorías -->
-                <select id="categoryFilter" class="form-select w-auto me-3" onchange="filterPointsByCategory(this.value)">
-                    <option value="">Selecciona una categoría 🧭</option>
-                    <?php foreach ($categorias as $categoria): ?>
-                        <option value="<?= htmlspecialchars($categoria['id']); ?>"><?= htmlspecialchars($categoria['name']); ?></option>
-                    <?php endforeach; ?>
-                </select>
 
                 <!-- Dropdown para cargar GeoJSON -->
                 <select id="geojsonFilter" class="form-select w-auto" onchange="loadSelectedGeoJSON(this.value)">
                     <option value="">Selecciona un archivo GeoJSON 🗂️</option>
                     <?php
-                    // Listar archivos GeoJSON desde la carpeta especificada
                     $geojsonPath = 'uploads/layers/';
                     $files = array_filter(scandir($geojsonPath), fn($file) => pathinfo($file, PATHINFO_EXTENSION) === 'geojson');
                     foreach ($files as $file): ?>
@@ -120,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
     </div>
 
     <script>
-        var map, markers = [];
+        var map, markers = [], polygons = [];
 
         function initMap() {
             const tarija = { lat: -21.5355, lng: -64.7296 };
@@ -133,35 +125,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             });
         }
 
-        function filterPointsByCategory(categoryId) {
-    clearMarkers();
-    $.post('user.php?action=filterPoints', { category_id: categoryId }, function(response) {
-        const data = JSON.parse(response);
-        const points = data.points;
-
-        points.forEach(function(point) {
-            const iconPath = point.icono; // Obtén el ícono de la base de datos
-
-            const marker = new google.maps.Marker({
-                position: { lat: parseFloat(point.latitud), lng: parseFloat(point.longitud) },
-                map: map,
-                title: point.nombre || point.descripcion,
-                icon: {
-                    url: iconPath, // Asigna el path del ícono desde la base de datos
-                    scaledSize: new google.maps.Size(32, 32) // Ajusta el tamaño del ícono si es necesario
-                }
-            });
-            markers.push(marker);
-        });
-
-        if (data.geojson_path) {
-            loadSelectedGeoJSON(data.geojson_path);
-        }
-    });
-}
-
         function loadSelectedGeoJSON(filePath) {
-            clearMarkers();
+            clearMarkersAndPolygons();
 
             if (!filePath) {
                 alert('Por favor, selecciona un archivo GeoJSON.');
@@ -170,27 +135,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 
             $.getJSON(filePath, function(data) {
                 data.features.forEach(function(feature) {
-                    const coords = feature.geometry.coordinates;
-                    const latLng = { lat: coords[1], lng: coords[0] };
-                    const marker = new google.maps.Marker({
-                        position: latLng,
-                        map: map,
-                        title: feature.properties.descrip || 'Sin descripción',
-                        icon: {
-                            url: "uploads/iconos/bombero.png",
-                            scaledSize: new google.maps.Size(32, 32)
-                        }
-                    });
-                    markers.push(marker);
+                    const geometry = feature.geometry;
+
+                    if (geometry.type === 'Point') {
+                        const coords = geometry.coordinates;
+                        const marker = new google.maps.Marker({
+                            position: { lat: coords[1], lng: coords[0] },
+                            map: map,
+                            title: feature.properties.descrip || 'Sin descripción'
+                        });
+                        markers.push(marker);
+                    } else if (geometry.type === 'MultiPolygon') {
+                        geometry.coordinates.forEach(function(polygon) {
+                            const paths = polygon[0].map(coord => ({ lat: coord[1], lng: coord[0] }));
+                            const poly = new google.maps.Polygon({
+                                paths: paths,
+                                map: map,
+                                strokeColor: '#FF0000',
+                                strokeOpacity: 0.8,
+                                strokeWeight: 2,
+                                fillColor: '#FF0000',
+                                fillOpacity: 0.35
+                            });
+                            polygons.push(poly);
+                        });
+                    }
                 });
             }).fail(function() {
                 alert('No se pudo cargar el archivo GeoJSON.');
             });
         }
 
-        function clearMarkers() {
+        function clearMarkersAndPolygons() {
             markers.forEach(marker => marker.setMap(null));
             markers = [];
+            polygons.forEach(polygon => polygon.setMap(null));
+            polygons = [];
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

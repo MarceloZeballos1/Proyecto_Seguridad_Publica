@@ -10,15 +10,27 @@ $isUser = isset($_SESSION['role']) && $_SESSION['role'] === 'user';
             <span class="text">Dashboard</span>
         </a>
         <?php if ($isUser): ?>
+        <a href="index.php" class="sidebar-item">
+            <span class="icon">🗺</span>
+            <span class="text">Mapa Puntos</span>
+        </a>
+        <?php endif; ?>
+        <?php if ($isUser): ?>
         <a href="user.php" class="sidebar-item">
             <span class="icon">🗺</span>
-            <span class="text">Mapa</span>
+            <span class="text">Mapa Archivos</span>
         </a>
         <?php endif; ?>
         <?php if ($isAdmin): ?>
         <a href="index.php" class="sidebar-item">
             <span class="icon">🗺</span>
-            <span class="text">Mapa</span>
+            <span class="text">Mapa Puntos</span>
+        </a>
+        <?php endif; ?>
+        <?php if ($isAdmin): ?>
+        <a href="user.php" class="sidebar-item">
+            <span class="icon">🗺</span>
+            <span class="text">Mapa Archivos</span>
         </a>
         <?php endif; ?>
         <?php if ($isAdmin): ?>
