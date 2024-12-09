@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-image: url('https://i.imgflip.com/4v7a3a.png?a480792');
+            background-image: url('https://blogs.iadb.org/seguridad-ciudadana/wp-content/uploads/sites/27/2018/11/camaras-vigilancia.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
