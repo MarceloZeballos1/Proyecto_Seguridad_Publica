@@ -98,7 +98,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                     <option value="">Selecciona un archivo GeoJSON 🗂️</option>
                     <?php
                     $geojsonPath = 'uploads/layers/';
-                    $files = array_filter(scandir($geojsonPath), fn($file) => pathinfo($file, PATHINFO_EXTENSION) === 'geojson');
+                    $files = array_filter(scandir($geojsonPath), function ($file) {
+                        return pathinfo($file, PATHINFO_EXTENSION) === 'geojson';
+                    });
                     foreach ($files as $file): ?>
                         <option value="<?= htmlspecialchars($geojsonPath . $file); ?>"><?= htmlspecialchars($file); ?></option>
                     <?php endforeach; ?>
